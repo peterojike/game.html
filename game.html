@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .simulation-area {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .scene-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #0a0a1a;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+        }
+        
+        .sun {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #fff700 0%, #ffaa00 50%, #ff6600 100%);
+            border-radius: 50%;
+            top: 50px;
+            left: 100px;
+            box-shadow: 0 0 40px #ffaa00, 0 0 80px #ff9900;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .moon {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: #c0c0c0;
+            border-radius: 50%;
+            top: 50px;
+            right: 100px;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.3);
+        }
+        
+        .eye {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 40px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+        
+        .eye::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .light-ray {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(255,255,0,0.8), rgba(255,255,0,0));
+            transform-origin: left center;
+            opacity: 0;
+            animation: rayAnimation 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes rayAnimation {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        .reflected-ray {
+            background: linear-gradient(90deg, rgba(173,216,230,0.8), rgba(173,216,230,0));
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        button.active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .btn-luminous {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-luminous:hover {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        }
+        
+        .btn-nonluminous {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .btn-nonluminous:hover {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+        }
+        
+        .info-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .info-panel h2 {
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+        
+        .info-panel p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .example-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .example-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .example-card h3 {
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+        
+        .example-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .label {
+            position: absolute;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Light: Luminous vs Non-Luminous Objects ✨</h1>
+        
+        <div class="simulation-area">
+            <div class="scene-container" id="scene">
+                <div class="sun" id="sun">
+                    <div class="label" style="top: -30px; left: 50%; transform: translateX(-50%);">Sun</div>
+                </div>
+                <div class="moon" id="moon" style="display: none;">
+                    <div class="label" style="top: -30px; left: 50%; transform: translateX(-50%);">Moon</div>
+                </div>
+                <div class="eye" id="eye">
+                    <div class="label" style="bottom: -30px; left: 50%; transform: translateX(-50%);">Your Eye</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn-luminous" onclick="showLuminous()">Show Luminous Object (Sun)</button>
+                <button class="btn-nonluminous" onclick="showNonLuminous()">Show Non-Luminous Object (Moon)</button>
+            </div>
+            
+            <div class="info-panel" id="infoPanel">
+                <h2>What's Happening?</h2>
+                <p id="explanation">Click a button above to see how light works with different objects!</p>
+            </div>
+        </div>
+        
+        <div class="examples">
+            <div class="example-card">
+                <div class="example-icon">☀️</div>
+                <h3>Luminous Objects</h3>
+                <p>Objects that EMIT (give off) their own light:</p>
+                <p>• Sun<br>• Stars<br>• Fire<br>• Light bulbs<br>• Flashlights</p>
+            </div>
+            
+            <div class="example-card">
+                <div class="example-icon">🌙</div>
+                <h3>Non-Luminous Objects</h3>
+                <p>Objects that REFLECT light from other sources:</p>
+                <p>• Moon<br>• Books<br>• Tables<br>• People<br>• Mirrors</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const scene = document.getElementById('scene');
+        const sun = document.getElementById('sun');
+        const moon = document.getElementById('moon');
+        const eye = document.getElementById('eye');
+        const infoPanel = document.getElementById('explanation');
+        let rays = [];
+
+        function clearRays() {
+            rays.forEach(ray => ray.remove());
+            rays = [];
+        }
+
+        function createRay(startX, startY, endX, endY, isReflected = false, delay = 0) {
+            const ray = document.createElement('div');
+            ray.className = isReflected ? 'light-ray reflected-ray' : 'light-ray';
+            
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            ray.style.width = length + 'px';
+            ray.style.left = startX + 'px';
+            ray.style.top = startY + 'px';
+            ray.style.transform = `rotate(${angle}deg)`;
+            ray.style.animationDelay = delay + 's';
+            
+            scene.appendChild(ray);
+            rays.push(ray);
+        }
+
+        function showLuminous() {
+            clearRays();
+            sun.style.display = 'block';
+            moon.style.display = 'none';
+            
+            const sunRect = sun.getBoundingClientRect();
+            const eyeRect = eye.getBoundingClientRect();
+            const sceneRect = scene.getBoundingClientRect();
+            
+            const sunCenterX = sunRect.left + sunRect.width / 2 - sceneRect.left;
+            const sunCenterY = sunRect.top + sunRect.height / 2 - sceneRect.top;
+            const eyeCenterX = eyeRect.left + eyeRect.width / 2 - sceneRect.left;
+            const eyeCenterY = eyeRect.top + eyeRect.height / 2 - sceneRect.top;
+            
+            // Create multiple rays from sun to eye
+            for (let i = 0; i < 5; i++) {
+                createRay(sunCenterX, sunCenterY, eyeCenterX, eyeCenterY + (i - 2) * 5, false, i * 0.2);
+            }
+            
+            infoPanel.innerHTML = '<strong>Luminous Object: The Sun</strong><br><br>' +
+                'The Sun is a luminous object because it <strong>emits (gives off) its own light</strong>. ' +
+                'Light rays travel directly from the Sun to your eyes, which is why you can see it. ' +
+                'The Sun produces light through nuclear fusion in its core!';
+        }
+
+        function showNonLuminous() {
+            clearRays();
+            sun.style.display = 'block';
+            moon.style.display = 'block';
+            
+            const sunRect = sun.getBoundingClientRect();
+            const moonRect = moon.getBoundingClientRect();
+            const eyeRect = eye.getBoundingClientRect();
+            const sceneRect = scene.getBoundingClientRect();
+            
+            const sunCenterX = sunRect.left + sunRect.width / 2 - sceneRect.left;
+            const sunCenterY = sunRect.top + sunRect.height / 2 - sceneRect.top;
+            const moonCenterX = moonRect.left + moonRect.width / 2 - sceneRect.left;
+            const moonCenterY = moonRect.top + moonRect.height / 2 - sceneRect.top;
+            const eyeCenterX = eyeRect.left + eyeRect.width / 2 - sceneRect.left;
+            const eyeCenterY = eyeRect.top + eyeRect.height / 2 - sceneRect.top;
+            
+            // Rays from sun to moon
+            for (let i = 0; i < 3; i++) {
+                createRay(sunCenterX, sunCenterY, moonCenterX, moonCenterY + (i - 1) * 10, false, i * 0.2);
+            }
+            
+            // Reflected rays from moon to eye
+            setTimeout(() => {
+                for (let i = 0; i < 3; i++) {
+                    createRay(moonCenterX, moonCenterY, eyeCenterX, eyeCenterY + (i - 1) * 5, true, i * 0.2);
+                }
+            }, 600);
+            
+            infoPanel.innerHTML = '<strong>Non-Luminous Object: The Moon</strong><br><br>' +
+                'The Moon is a non-luminous object because it <strong>does NOT emit its own light</strong>. ' +
+                'Instead, light from the Sun hits the Moon and <strong>reflects (bounces) off</strong> it. ' +
+                'The reflected light then travels to your eyes, which is how you see the Moon. ' +
+                'Most objects around you work the same way!';
+        }
+
+        // Show luminous example by default
+        showLuminous();
+    </script>
+</body>
+</html>
